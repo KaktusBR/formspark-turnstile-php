@@ -1,0 +1,92 @@
+---
+const formClassGeneric =
+	"block w-full outline-0	 rounded-md border-0 bg-white/5 py-1.5  px-3 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-gray-900 sm:text-sm sm:leading-6";
+---
+
+<form method='post'>
+	<h2 class='text-center text-base font-semibold leading-7 text-gray-900'>Contact us</h2>
+	<div class='mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-4'>
+		<div class='col-span-full sm:col-span-2'>
+			<label for='formName' class='block text-sm font-medium leading-6 text-gray-900'>Your name</label>
+			<div class='mt-2'>
+				<input type='text' name='name' id='formName' autocomplete='name' class:list={` ${formClassGeneric}`} required />
+			</div>
+		</div>
+
+		<div class='col-span-full sm:col-span-2'>
+			<label for='formEmail' class='block text-sm font-medium leading-6 text-gray-900'>Email address</label>
+			<div class='mt-2'>
+				<input id='formEmail' name='email' type='email' autocomplete='email' class:list={`  ${formClassGeneric}`} required />
+			</div>
+		</div>
+	</div>
+
+	<div class='col-span-full mt-5'>
+		<label for='formMessage' class='block text-sm font-medium leading-6 text-gray-900'>Message</label>
+		<div class='mt-2'>
+			<textarea id='formMessage' name='message' rows='3' class:list={` ${formClassGeneric}`} required></textarea>
+		</div>
+	</div>
+	<p class='pt-4 text-center font-bold opacity-0' id='formResponse'>&nbsp;</p>
+
+	<div class='mt-6 flex flex-col items-center justify-end gap-x-6 sm:flex-row'>
+		<input type='checkbox' name='<CUSTOM_HONEYPOT_FIELD>' class='hidden' tabindex='-1' autocomplete='off' />
+		<!-- Turnstile widget -->
+		<script src='https://challenges.cloudflare.com/turnstile/v0/api.js' defer></script>
+		<div class='cf-turnstile' data-theme='dark' data-sitekey='<SITE_KEY>'></div>
+
+		<input type='hidden' name='cf-captcha-response' id='cf-captcha-response' />
+
+		<button type='submit' class='mt-2 rounded-md bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-sm duration-150 hover:bg-white/50'> Send</button>
+	</div>
+</form>
+
+<script is:inline>
+	let formResponse = document.getElementById("formResponse");
+	document.addEventListener("DOMContentLoaded", function () {
+		const form = document.querySelector("form");
+
+		form.addEventListener("submit", function (event) {
+			event.preventDefault();
+
+			// Your form submission code here
+
+			// Example using Fetch API
+			fetch("submit-form.php", {
+				method: "POST",
+				body: new FormData(form),
+			})
+				.then((response) => response.json())
+				.then((data) => {
+					if (data.success) {
+						// Show success message to the user
+						formResponse.innerHTML = data.message;
+						formResponse.classList.replace("opacity-0", "opacity-1");
+						formResponse.classList.remove("text-red-500");
+						formResponse.classList.add("text-green-500");
+					} else {
+						// Show error message to the user
+						formResponse.innerHTML = data.message;
+						formResponse.classList.replace("opacity-0", "opacity-1");
+						formResponse.classList.remove("text-green-500");
+						formResponse.classList.add("text-red-500");
+					}
+				})
+				.catch((error) => {
+					console.error("Error submitting form:", error);
+					// Show a generic error message to the user
+					formResponse.innerHTML = "An error occurred. Please try again later";
+					formResponse.classList.replace("opacity-0", "opacity-1");
+					formResponse.classList.add("text-red-500");
+				});
+		});
+	});
+
+	document.addEventListener("DOMContentLoaded", function () {
+		var cfTurnstile = document.querySelector(".cf-turnstile");
+
+		cfTurnstile.addEventListener("cf-callback", function (event) {
+			document.getElementById("cf-captcha-response").value = event.detail.response;
+		});
+	});
+</script>
